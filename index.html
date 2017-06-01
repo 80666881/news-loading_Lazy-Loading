@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+		ul,li,h2,p{
+			margin: 0;
+			padding: 0;
+		}
+		.clearfix:after{
+			content: '';
+			display: block;
+			clear: both;
+		}
+		li{
+			list-style: none;
+		}
+		a{
+			text-decoration: none;
+		}
+		.load-more{
+			cursor: pointer;
+			border: 1px solid black;
+			visibility: hidden;
+		}
+		.newsList{
+			border: 1px solid grey;
+			padding: 5px;
+			width: 500px;
+			margin: 20px;
+			border-radius: 5px;
+		}
+		.newsList img{
+			float: left;
+			width: 50px;
+			height: 50px;
+			margin-right: 20px
+		}
+		.newsList h2{
+			font-size: 16px;
+			color: #837F7F;
+		}
+		.newsList p{
+			font-size: 16px;
+			color: #F9B462;
+		}
+		.no-more{
+			color: red;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<ul class="news">
+
+		</ul>
+	</div>
+	<p class="load-more"></p>
+
+
+	<script src="http://apps.bdimg.com/libs/jquery/1.9.1/jquery.js"></script>
+	<script type="text/javascript">
+		var isOver = false;
+		var pageIndex = 0;
+		var loaded = false;
+		getNews();
+		$(window).on('scroll',function(){
+			if (isShow($('.load-more'))&&(isOver == false)&&(loaded == false)){
+				getNews();
+			}
+		})
+
+		function getNews(){
+				loaded = true;
+				$.get('/getNews',{page:pageIndex}).done(function(ret){
+					pageIndex++;
+					if(ret.status === 0){
+						appendHtml(ret.data);
+						loaded = false;
+						if (isShow($('.load-more'))) {
+							getNews();
+						}
+					}
+				}).fail(function(){
+					alert('获取资源错误');
+				});
+		}
+		function appendHtml(news){
+			if(isOver == false){
+				if (news.length ===0) {
+					$('.news').append('<p class="no-more">没有更多数据了哦</p>');
+					isOver = true;
+				}
+				var html = '';
+				$.each(news,function(){
+					html += '<li class="newsList clearfix">';
+					html +=		'<a href="'+this.link+'">';
+					html +=			'<img src="'+this.img+'">';
+					html +=			'<h2>'+this.title+'</h2>';
+					html +=			'<p>'+this.brif+'</p>';
+					html +=		'</a>';
+					html +=	'</li>';
+				})
+				$('.news').append(html);
+			}
+		}
+		function isShow($node){
+			var windowHeight = $(window).height();
+			var scrollTop = $(window).scrollTop();
+			var offsetTop = $node.offset().top;
+			var objHeight = $node.outerHeight();
+			if (scrollTop+windowHeight>offsetTop && scrollTop<offsetTop+objHeight) {
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+	</script>	
+</body>
+</html>
